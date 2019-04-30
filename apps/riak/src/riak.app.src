@@ -12,6 +12,7 @@
        ssl,
        os_mon,
        crypto,
+       riak,
        cuttlefish,
        runtime_tools,
        lager_syslog,
