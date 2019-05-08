@@ -19,23 +19,13 @@ $(if $(ERLANG_BIN),,$(warning "Warning: No Erlang found in your path, this will 
 
 .PHONY: rel stagedevrel deps
 
-all: deps compile
+all: compile
 
 compile:
-	./rebar compile
-
-deps:
-	$(if $(HEAD_REVISION),$(warning "Warning: you have checked out a tag ($(HEAD_REVISION)) and should use the locked-deps target"))
-	./rebar get-deps
+	./rebar3 compile
 
 clean: testclean
-	./rebar clean
-
-distclean: clean devclean relclean ballclean
-	./rebar delete-deps
-
-generate:
-	./rebar generate $(OVERLAY_VARS)
+	./rebar3 clean
 
 
 ##
@@ -95,7 +85,7 @@ relclean:
 ##    make stagedevrel DEVNODES=68
 
 .PHONY : stagedevrel devrel
-DEVNODES ?= 8
+DEVNODES ?= 3
 
 # 'seq' is not available on all *BSD, so using an alternate in awk
 SEQ = $(shell awk 'BEGIN { for (i = 1; i < '$(DEVNODES)'; i++) printf("%i ", i); print i ;exit(0);}')
@@ -103,10 +93,13 @@ SEQ = $(shell awk 'BEGIN { for (i = 1; i < '$(DEVNODES)'; i++) printf("%i ", i);
 $(eval stagedevrel : $(foreach n,$(SEQ),stagedev$(n)))
 $(eval devrel : $(foreach n,$(SEQ),dev$(n)))
 
+## need absolute path for overlay_vars due to rebar3 bug
 dev% : all
 	mkdir -p dev
 	rel/gen_dev $@ rel/vars/dev_vars.config.src rel/vars/$@_vars.config
-	(cd rel && ../rebar generate target_dir=../dev/$@ overlay_vars=vars/$@_vars.config)
+	cp rel/vars/$@_vars.config rel/vars.config
+	./rebar3 release
+	mv _build/default/rel/riak dev/$@/
 
 perfdev : all
 	perfdev/bin/riak stop || :
