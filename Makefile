@@ -8,6 +8,7 @@ REBAR           ?= $(BASE_DIR)/rebar3
 OVERLAY_VARS    ?=
 TEST_IGNORE     ?=
 TEST_DEPS_DIR   ?= _build/test/lib
+REL_DIR         ?= _build/default/rel
 DEPS             = $(patsubst $(TEST_DEPS_DIR)/%, %, $(wildcard $(TEST_DEPS_DIR)/*))
 TEST_DEPS        = $(filter-out $(TEST_IGNORE), $(DEPS))
 
@@ -72,9 +73,11 @@ test : test-deps
 ##
 ## Release targets
 ##
-rel: locked-deps compile generate
+rel: locked-deps compile 
+	$(REBAR) release
 
 relclean:
+	rm -rf $(REL_DIR)
 	rm -rf rel/riak
 
 ##
